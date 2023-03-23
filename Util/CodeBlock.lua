@@ -1,14 +1,10 @@
-local Util = {}
+local CodeBlock = {}
 
-function Util.CreateVariable(name, data_type, mem_type)
-    return {name_= name, data_type_ = data_type, mem_type_ = mem_type or "private"}
-end
-
-function Util.GetCodeBlock(padding_num, sub_code_block)
+function CodeBlock.GetCodeBlock(padding_num, sub_code_block)
     return {padding_num_ = padding_num, sub_code_block_ = sub_code_block}
 end
 
-function Util.ConvertCodeBlockToString(code_block)
+function CodeBlock.ConvertCodeBlockToString(code_block)
     local codetype = type(code_block)
     if codetype == "string" then
         return code_block
@@ -35,3 +31,5 @@ function Util.ConvertCodeBlockToString(code_block)
     table.insert(code_str, "}\n")
     return table.concat(code_str)
 end
+
+return CodeBlock

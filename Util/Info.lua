@@ -1,5 +1,5 @@
 -- global variable
-Info = {}
+local Info = {}
 
 Info.pass_info = {}
 Info.kernel_info = {}
@@ -40,4 +40,5 @@ Info.micro_pass_info.row_len_ = Info.kernel_info.local_row_
 Info.micro_pass_info.col_group_num_ =  Info.micro_pass_info.element_per_thread_ / Info.micro_pass_info.cur_
 Info.micro_pass_info.col_group_stride_ = Info.pass_info.cur_ / Info.micro_pass_info.element_per_thread_
 
+return Info
 

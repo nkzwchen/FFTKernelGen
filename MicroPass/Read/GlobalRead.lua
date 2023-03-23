@@ -1,8 +1,10 @@
-local Info = require("FFTKernelGen.Info")
-local Util = require("FFTKernelGen.Util")
-local Sentence = require("FFTKernel.Sentence")
+local Info = require("FFTKernelGen.Util.Info")
+local Variable = require("FFTKernelGen.Util.Variable")
+local CodeBlock = require("FFTKernelGen.Util.CodeBlock")
+local Sentence = require("FFTKernelGen.Util.Sentence")
 
 local GlobalRead = {}
+
 -- create code block calculate global read offset value
 -- {
 --  group_id = (utin2)(get_group_id(0), get_group_id(1))
@@ -29,7 +31,7 @@ local function GlobalReadOffset(padding_num, offset, local_id, local_row_offset,
     local code_block = {}
 
     -- group_id = (uint2)(get_group_id(0), get_group_id(1))
-    local group_id = Util.create_variable('group_id', 'uint2')
+    local group_id = Variable.CreateVariable('group_id', 'uint2')
     local group_id_value = "(uint2)(get_group_id(0), get_group_id(1))"
     table.insert(code_block, Sentence.CLAllocateVar(padding_num, group_id, group_id_value))
 
@@ -38,7 +40,7 @@ local function GlobalReadOffset(padding_num, offset, local_id, local_row_offset,
     --     y_ = local_id.y + local_col_offset
     --    )
 
-    local element_id = Util.create_variable('element_id', 'uint2')
+    local element_id = Variable.CreateVariable('element_id', 'uint2')
     local element_id_value = {
                                 x_ = {string.format("%s.x * %d + %s.x",
                                                 group_id.name_,
@@ -86,7 +88,7 @@ local function GlobalReadOffset(padding_num, offset, local_id, local_row_offset,
     end
 
     table.insert(code_block, Sentence.CLSetVar(padding_num, offset, offset_value))
-    return Util.GetCodeBlock(padding_num,  code_block)
+    return CodeBlock.GetCodeBlock(padding_num,  code_block)
 end
 
 -- create code block move from mem to register
@@ -103,11 +105,11 @@ end
 --     }
 -- }
 
--- input: input address, offset: global read offset, var: global vars
+-- input: var: global vars, input address, offset: global read offset
 
 local function GlobalInputToReg(padding_num, var_tables, input, offset)
     local code_block = {}
-    local lwIn = Util.create_variable('lwIn', 'float2*')
+    local lwIn = Variable.CreateVariable('lwIn', 'float2*')
     local lwIn_Value = string.format("input + %s", offset.name_)
 
     table.insert(code_block, Sentence.CLAllocateVar(padding_num, lwIn, lwIn_Value))
@@ -124,30 +126,31 @@ local function GlobalInputToReg(padding_num, var_tables, input, offset)
         end 
         
         local read_str = Sentence.CLRead(padding_num + 1, group_vars, lwIn, nil, stride, stride_offset)
-        table.insert(code_block, Util.GetCodeBlock(padding_num + 1, {read_str}))
+        table.insert(code_block, CodeBlock.GetCodeBlock(padding_num + 1, {read_str}))
     end
 
-    return Util.GetCodeBlock(padding_num, code_block)
+    return CodeBlock.GetCodeBlock(padding_num, code_block)
 end
 
 -- create code block read from global mem
 -- {
 --    uint offset;
---    {cal offset}
+--    {get offset value}
 --    {move from global mem to reg}
 -- }
 
 -- input: input address, offset: global read offset, var: global vars
 
-function GlobalRead.CodeBlock():
+function GlobalRead.CodeBlock(padding_num, input)
     local code_block = {}
-    local offset = Util.create_variable('offset', 'uint')
+    local offset = Variable.CreateVariable('offset', 'uint')
     table.insert(code_block, Sentence.CLAllocateVar(padding_num, offset))
 
-    table.insert(code_block, ReadOffset(padding_num + 1, offset, local_id))
+    table.insert(code_block, GlobalReadOffset(padding_num + 1, offset, local_id))
 
-    table.insert(code_block, InputToReg(padding_num + 1, offset, var_tables))
+    table.insert(code_block, GlobalInputToReg(padding_num + 1, var_tables, input, offset))
 
-    return Util.GetCodeBlock(padding_num, code_block)
+    return CodeBlock.GetCodeBlock(padding_num, code_block)
 end
 
+return GlobalRead

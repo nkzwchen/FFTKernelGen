@@ -62,6 +62,7 @@ function Sentence.CLRead(padding_num, var_table, src, offset, stride, stride_off
     return table.concat(sentence_table)
 end
 
+return Sentence
 -- function AddCLWriteSentence(var_table, offset, dest, stride)
 --     local sentence_table = {}
 --     for idx, var in pairs(var_table) do
