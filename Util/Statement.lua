@@ -37,42 +37,46 @@ function Statement.CLDefineMultiVar(indent_num, var_tables, data_type, mem_type)
     return table.concat(str)
 end
 
-function Statement.CLAssignValue(ident_num, var, value)
-    local str = {CLIndentation(ident_num)}
+function Statement.CLAssignValue(indent_num, var, value)
+    local str = {CLIndentation(indent_num)}
     table.insert(str, string.format("%s = (%s);\n", var.name_, value))
     return table.concat(str)
 end
 
-function Statement.CLRead(ident_num, var_table, src, src_offset, stride, stride_offset)
+function Statement.CLRead(indent_num, var_table, src, offset, stride, const_offset)
     local sentence_table = {}
     for idx, var in pairs(var_table) do
-        table.insert(sentence_table, CLIndentation(ident_num))
+        table.insert(sentence_table, CLIndentation(indent_num))
         table.insert(sentence_table, string.format("%s = %s[", var.name_, src.name_))
-        if src_offset then
-            table.insert(sentence_table, string.format("%s + ", src_offset.name_))
+        if offset then
+            table.insert(sentence_table, string.format("%s + ", offset.name_))
         end
 
         table.insert(
             sentence_table,
             string.format(
-                "%d];\n", (idx - 1) * stride + stride_offset)
+                "%d];\n", (idx - 1) * stride + const_offset)
             )
     end
     return table.concat(sentence_table)
 end
 
-return Statement
--- function AddCLWriteStatement(var_table, offset, dest, stride)
---     local sentence_table = {}
---     for idx, var in pairs(var_table) do
---         table.insert(
---             sentence_table, 
---             string.format(
---                 "%s[%s + %d] = ;", dest.name_, offset.name_, (idx - 1) * stride, var.name_)
---             )
---     end
---     return table.concat(sentence_table, '\n', 0, -1)
--- end
+function Statement.CLWrite(indent_num, var_table, dest, offset, stride, const_offset)
+    local sentence_table = {}
+    for idx, var in pairs(var_table) do
+        table.insert(sentence_table, CLIndentation(indent_num))
+        table.insert(sentence_table, string.format("%s[", var.name_, dest.name_))
+        if offset then
+            table.insert(sentence_table, string.format("%s + ", offset.name_))
+        end
+        table.insert(
+            sentence_table,
+            string.format(
+                "%d] = %s;\n", (idx - 1) * stride + const_offset, var.name_)
+            )
+    end
+    return table.concat(sentence_table)
+end
 
 -- function AddCLTwiddleStatement(var_table, tw1, tw2, tmp, tmp_tw)
 --     local sentence_table = {}
@@ -111,9 +115,13 @@ return Statement
 --     return string.format("{BasicDFT%d(%s)}", length, table.concat(param, ", "))  
 -- end
 
--- function AddCLBarrierStatement()
---     return "barrier(CLK_LOCAL_MEM_FENCE);"
--- end
+function Statement.CLBarrier(indent_num)
+    local str = {CLIndentation(indent_num)}
+    table.insert(str, "barrier(CLK_LOCAL_MEM_FENCE);\n")
+    return table.concat(str)
+end
+
+return Statement
 
 -- -- function AddReadCodeBlock():
 -- -- end

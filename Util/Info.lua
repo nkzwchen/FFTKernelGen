@@ -31,10 +31,12 @@ Info.micro_pass_info.cur_ = 4
 Info.micro_pass_info.prev_ = 1
 Info.micro_pass_info.ret_ = 64
 
-Info.micro_pass_info.input_type_ = "global"
+Info.micro_pass_info.input_type_ = 'local'
 Info.micro_pass_info.element_per_thread_ = 8
 
 Info.micro_pass_info.row_offset_ = 0
+Info.micro_pass_info.local_read_mem_row_ = Info.kernel_info.local_row_
+Info.micro_pass_info.local_write_mem_row_ = Info.kernel_info.local_row_
 Info.micro_pass_info.row_len_ = Info.kernel_info.local_row_ 
 
 Info.micro_pass_info.col_group_num_ =  Info.micro_pass_info.element_per_thread_ / Info.micro_pass_info.cur_

@@ -94,13 +94,13 @@ function GlobalToRegMethod:MemToReg(indent_num, offset)
     for gid = 1, self.micro_pass_info_.col_group_num_ do
         local group_vars = {}
         local stride = (self.pass_info_.cur_ / self.micro_pass_info_.cur_) * self.kernel_info_.global_row_
-        local stride_offset = (gid - 1) * (self.micro_pass_info_.col_group_stride_) * (self.kernel_info_.global_row_)
+        local const_offset = (gid - 1) * (self.micro_pass_info_.col_group_stride_) * (self.kernel_info_.global_row_)
 
         for i = 1, self.micro_pass_info_.cur_ do
             table.insert(group_vars, self.dest_var_list_[i + (gid - 1) * self.micro_pass_info_.cur_])
         end 
         
-        local read_str = Statement.CLRead(indent_num + 1, group_vars, lwIn, nil, stride, stride_offset)
+        local read_str = Statement.CLRead(indent_num + 1, group_vars, lwIn, nil, stride, const_offset)
         table.insert(code_block, CodeBlock.GetCodeBlock(indent_num + 1, {read_str}))
     end
 
